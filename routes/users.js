@@ -8,6 +8,7 @@ var HttpError = helpers.HttpError;
 
 var DUPLICATE_EMAIL_MESSAGE = 'That email is already used by another user';
 var DUPLICATE_KEY_CODE = 11000;
+var UNASSIGNED = { assignedUser: '', assignedUserName: 'unassigned' };
 
 async function checkEmailIsFree(user, email) {
     if (await User.exists({ email: email, _id: { $ne: user._id } })) {
@@ -33,10 +34,7 @@ async function syncTasks(user, oldTaskIds) {
         return !newTaskIds.includes(id);
     });
 
-    await Task.updateMany(
-        { _id: { $in: removedTaskIds } },
-        { assignedUser: '', assignedUserName: 'unassigned' }
-    );
+    await Task.updateMany({ _id: { $in: removedTaskIds } }, UNASSIGNED);
     // A task can only have one user, so take the new tasks away from anyone else who has them
     await User.updateMany(
         { _id: { $ne: userId }, pendingTasks: { $in: newTaskIds } },
@@ -80,6 +78,13 @@ async function replaceUser(req, res) {
     helpers.sendSuccess(res, 200, user);
 }
 
+async function deleteUser(req, res) {
+    var user = await queries.findExisting(User, req.params.id, 'User');
+    await Task.updateMany({ assignedUser: String(user._id) }, UNASSIGNED);
+    await user.deleteOne();
+    helpers.sendSuccess(res, 200, user);
+}
+
 module.exports = function (router) {
 
     router.route('/users')
@@ -88,7 +93,8 @@ module.exports = function (router) {
 
     router.route('/users/:id')
         .get(queries.getOne(User, 'User'))
-        .put(replaceUser);
+        .put(replaceUser)
+        .delete(deleteUser);
 
     return router;
 }

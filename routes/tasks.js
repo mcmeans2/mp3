@@ -67,6 +67,14 @@ async function replaceTask(req, res) {
     helpers.sendSuccess(res, 200, task);
 }
 
+async function deleteTask(req, res) {
+    var task = await queries.findExisting(Task, req.params.id, 'Task');
+    var taskId = String(task._id);
+    await User.updateMany({ pendingTasks: taskId }, { $pull: { pendingTasks: taskId } });
+    await task.deleteOne();
+    helpers.sendSuccess(res, 200, task);
+}
+
 module.exports = function (router) {
 
     router.route('/tasks')
@@ -75,7 +83,8 @@ module.exports = function (router) {
 
     router.route('/tasks/:id')
         .get(queries.getOne(Task, 'Task'))
-        .put(replaceTask);
+        .put(replaceTask)
+        .delete(deleteTask);
 
     return router;
 }
