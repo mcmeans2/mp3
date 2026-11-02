@@ -82,7 +82,7 @@ async function deleteUser(req, res) {
     var user = await queries.findExisting(User, req.params.id, 'User');
     await Task.updateMany({ assignedUser: String(user._id) }, UNASSIGNED);
     await user.deleteOne();
-    helpers.sendSuccess(res, 200, user);
+    res.status(204).end();
 }
 
 module.exports = function (router) {
