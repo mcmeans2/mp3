@@ -84,7 +84,7 @@ function optionalIdList(body, field) {
     if (!valid) {
         throw new HttpError(400, 'The ' + field + ' must be a list of valid ids');
     }
-    return value;
+    return Array.from(new Set(value));
 }
 
 function optionalId(body, field) {

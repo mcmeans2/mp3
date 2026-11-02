@@ -106,6 +106,15 @@ function getList(Model, defaultLimit) {
     };
 }
 
+// Load the resource named in the URL, or respond 404 if there is no such resource
+async function findExisting(Model, id, label) {
+    var doc = isValidId(id) ? await Model.findById(id) : null;
+    if (!doc) {
+        throw new HttpError(404, label + ' not found');
+    }
+    return doc;
+}
+
 // Handler for GET on a single resource, such as GET /users/:id
 function getOne(Model, label) {
     return async function (req, res) {
@@ -123,6 +132,7 @@ function getOne(Model, label) {
 
 module.exports = {
     isValidId: isValidId,
+    findExisting: findExisting,
     getList: getList,
     getOne: getOne
 };
