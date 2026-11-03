@@ -72,7 +72,7 @@ async function deleteTask(req, res) {
     var taskId = String(task._id);
     await User.updateMany({ pendingTasks: taskId }, { $pull: { pendingTasks: taskId } });
     await task.deleteOne();
-    helpers.sendSuccess(res, 200, task);
+    res.status(204).end();
 }
 
 module.exports = function (router) {
